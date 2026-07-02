@@ -3,12 +3,7 @@ import type { Game, RsvpStatus, Session, SessionKind, SessionRsvp } from '@ligne
 import { db } from '@/lib/supabase';
 import { useAuth } from '@/auth/AuthProvider';
 import { Badge, Button, Modal, Panel, Spinner } from '@/components/ui';
-
-const KINDS: { id: SessionKind; label: string }[] = [
-  { id: 'practice', label: 'Entraînement' },
-  { id: 'scrim', label: 'Scrim' },
-  { id: 'review', label: 'Review / VOD' },
-];
+import { SESSION_KINDS as KINDS } from '@/lib/calendar';
 const RSVPS: { id: RsvpStatus; label: string; tone: string }[] = [
   { id: 'yes', label: 'Présent', tone: 'var(--signal-ok)' },
   { id: 'maybe', label: 'Peut-être', tone: 'var(--signal-warn)' },
@@ -127,7 +122,7 @@ export function SessionsPage() {
   );
 }
 
-function SessionForm({ draft, games, onClose, onSaved }: { draft: Partial<Session>; games: Game[]; onClose: () => void; onSaved: () => void }) {
+export function SessionForm({ draft, games, onClose, onSaved }: { draft: Partial<Session>; games: Game[]; onClose: () => void; onSaved: () => void }) {
   const [s, setS] = useState<Partial<Session>>(draft);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

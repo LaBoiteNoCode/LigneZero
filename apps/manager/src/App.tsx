@@ -13,13 +13,13 @@ import { MyProfilePage } from '@/pages/MyProfilePage';
 import { ObjectivesPage } from '@/pages/ObjectivesPage';
 import { FeedbackPage } from '@/pages/FeedbackPage';
 import { SessionsPage } from '@/pages/SessionsPage';
+import { CalendarPage } from '@/pages/CalendarPage';
 import { TeamAvailabilityPage } from '@/pages/TeamAvailabilityPage';
 import { AnnouncementsPage } from '@/pages/AnnouncementsPage';
 import { AccountsPage } from '@/pages/AccountsPage';
 import {
   gamesConfig,
   staffConfig,
-  matchesConfig,
   sponsorsConfig,
   creatorsConfig,
   clipsConfig,
@@ -75,7 +75,7 @@ function Gate() {
         <Route path="/players" element={<PlayersPage />} />
         <Route path="/staff" element={<ResourcePage config={staffConfig} />} />
         <Route path="/games" element={<ResourcePage config={gamesConfig} />} />
-        <Route path="/matches" element={<ResourcePage config={matchesConfig} />} />
+        <Route path="/matches" element={<CalendarPage />} />
         <Route path="/sponsors" element={<ResourcePage config={sponsorsConfig} />} />
         <Route path="/annonces" element={<AnnouncementsPage />} />
 

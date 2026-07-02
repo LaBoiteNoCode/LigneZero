@@ -202,7 +202,7 @@ export function ResourcePage<T>({ config }: { config: ResourceConfig<T> }) {
 }
 
 // ── Formulaire générique piloté par le schéma ─────────────────────────
-function ResourceForm<T>({
+export function ResourceForm<T>({
   config,
   ctx,
   draft,

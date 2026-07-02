@@ -23,6 +23,7 @@ export const NAV: NavItem[] = [
   { path: '/me/profil', label: 'Mon profil', code: 'PROF', section: 'Espace', roles: ['joueur'] },
 
   // Performance
+  { path: '/matches', label: 'Calendrier', code: 'CAL', section: 'Performance', roles: ALL },
   { path: '/objectifs', label: 'Objectifs', code: 'OBJ', section: 'Performance', roles: ['admin', 'manager', 'coach', 'joueur', 'staff'] },
   { path: '/feedback', label: 'Feedback', code: 'FDBK', section: 'Performance', roles: ['admin', 'manager', 'coach', 'joueur'] },
   { path: '/sessions', label: 'Sessions & scrims', code: 'SESS', section: 'Performance', roles: ['admin', 'manager', 'coach', 'joueur', 'staff'] },
@@ -32,7 +33,6 @@ export const NAV: NavItem[] = [
   { path: '/players', label: 'Joueurs', code: 'PLR', section: 'Direction', roles: ['admin', 'manager', 'coach', 'staff'] },
   { path: '/staff', label: 'Staff', code: 'STF', section: 'Direction', roles: DIR },
   { path: '/games', label: 'Jeux', code: 'GAM', section: 'Direction', roles: DIR },
-  { path: '/matches', label: 'Calendrier', code: 'MTC', section: 'Direction', roles: DIR },
   { path: '/sponsors', label: 'Sponsors', code: 'SPN', section: 'Direction', roles: DIR },
   { path: '/annonces', label: 'Annonces', code: 'ANN', section: 'Direction', roles: ALL },
 
