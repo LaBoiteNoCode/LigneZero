@@ -37,7 +37,7 @@ export const gamesConfig: ResourceConfig<Game> = {
   columns: [
     { header: 'Nom', cell: (g) => <span className="text-[color:var(--text)]">{g.name}</span> },
     { header: 'Sigle', cell: (g) => <Badge>{g.tag}</Badge> },
-    { header: 'Palmarès', cell: (g) => `${g.palmares.length} entrée(s)` },
+    { header: 'Palmarès', cell: (g) => `${g.palmares?.length ?? 0} entrée(s)` },
   ],
   fields: () => [
     { key: 'id', label: 'ID (slug unique)', idField: true, required: true, placeholder: 'ex. valorant' },

@@ -220,7 +220,7 @@ export interface Feedback {
   createdAt: string;
 }
 
-export type SessionKind = 'scrim' | 'practice' | 'review';
+export type SessionKind = 'scrim' | 'practice' | 'review' | 'tournament' | 'meeting' | 'event';
 
 export interface Session {
   id: string;
