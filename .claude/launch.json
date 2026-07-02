@@ -1,0 +1,19 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "site",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:site"],
+      "port": 5173,
+      "autoPort": true
+    },
+    {
+      "name": "manager",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:manager"],
+      "port": 5174,
+      "autoPort": true
+    }
+  ]
+}
