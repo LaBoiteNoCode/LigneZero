@@ -1,0 +1,30 @@
+/**
+ * Palette LigneZero — copie des valeurs de apps/site/src/theme/tokens.css
+ * (à garder synchro si le skin du vitrine change). Registre manager = sobre.
+ */
+:root {
+  --base-900: #121013;
+  --base-800: #1a1715;
+  --base-700: #242019;
+  --base-600: #2f2a22;
+
+  --concrete: #cfcabb;
+  --concrete-2: #b8b2a2;
+  --paper: #e8e4da;
+  --ink: #0d0d0b;
+
+  --accent: #f23127;
+  --accent-2: #e8e4da;
+
+  --signal-live: #f23127;
+  --signal-ok: #b9b3a3;
+  --signal-warn: #d8a43a;
+
+  --line: rgba(200, 190, 170, 0.10);
+  --line-strong: rgba(205, 196, 178, 0.24);
+  --line-bright: rgba(220, 212, 196, 0.46);
+
+  --text: #ece7dd;
+  --text-dim: #948c7d;
+  --text-mute: #635b4d;
+}

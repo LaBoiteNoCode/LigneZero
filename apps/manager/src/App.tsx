@@ -1,0 +1,105 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '@/auth/AuthProvider';
+import { LoginPage } from '@/auth/LoginPage';
+import { Layout } from '@/components/Layout';
+import { Spinner, Button } from '@/components/ui';
+import { DashboardPage } from '@/pages/DashboardPage';
+import { PlayerDashboard } from '@/pages/PlayerDashboard';
+import { PlayersPage } from '@/pages/PlayersPage';
+import { ResourcePage } from '@/resources/engine';
+import { SocialStudioPage } from '@/pages/SocialStudioPage';
+import { MyAvailabilityPage } from '@/pages/MyAvailabilityPage';
+import { MyProfilePage } from '@/pages/MyProfilePage';
+import { ObjectivesPage } from '@/pages/ObjectivesPage';
+import { FeedbackPage } from '@/pages/FeedbackPage';
+import { SessionsPage } from '@/pages/SessionsPage';
+import { TeamAvailabilityPage } from '@/pages/TeamAvailabilityPage';
+import { AnnouncementsPage } from '@/pages/AnnouncementsPage';
+import { AccountsPage } from '@/pages/AccountsPage';
+import {
+  gamesConfig,
+  staffConfig,
+  matchesConfig,
+  sponsorsConfig,
+  creatorsConfig,
+  clipsConfig,
+  productsConfig,
+} from '@/resources/configs';
+
+/** Écran "compte en attente de validation" (rôle member). */
+function Pending() {
+  const { signOut, refresh, profile } = useAuth();
+  return (
+    <div className="relative z-10 flex min-h-screen flex-col items-center justify-center gap-4 px-4 text-center">
+      <p className="font-display text-3xl font-bold uppercase tracking-hud text-[color:var(--signal-warn)]">Compte en attente</p>
+      <p className="max-w-sm font-mono text-sm text-[color:var(--text-dim)]">
+        Bonjour {profile?.displayName}. Ton compte est créé mais un admin doit t'attribuer un rôle avant l'accès.
+      </p>
+      <div className="flex gap-3">
+        <Button variant="ghost" onClick={() => refresh()}>↻ Vérifier</Button>
+        <Button variant="ghost" onClick={() => signOut()}>Se déconnecter</Button>
+      </div>
+    </div>
+  );
+}
+
+function Gate() {
+  const { loading, session, isActive, isAdmin, role } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="relative z-10 flex min-h-screen items-center justify-center">
+        <Spinner label="Vérification de la session…" />
+      </div>
+    );
+  }
+  if (!session) return <LoginPage />;
+  if (!isActive) return <Pending />;
+
+  return (
+    <Layout>
+      <Routes>
+        <Route path="/" element={role === 'joueur' ? <PlayerDashboard /> : <DashboardPage />} />
+
+        {/* Espace joueur */}
+        <Route path="/me/dispos" element={<MyAvailabilityPage />} />
+        <Route path="/me/profil" element={<MyProfilePage />} />
+
+        {/* Performance */}
+        <Route path="/objectifs" element={<ObjectivesPage />} />
+        <Route path="/feedback" element={<FeedbackPage />} />
+        <Route path="/sessions" element={<SessionsPage />} />
+        <Route path="/dispos" element={<TeamAvailabilityPage />} />
+
+        {/* Direction */}
+        <Route path="/players" element={<PlayersPage />} />
+        <Route path="/staff" element={<ResourcePage config={staffConfig} />} />
+        <Route path="/games" element={<ResourcePage config={gamesConfig} />} />
+        <Route path="/matches" element={<ResourcePage config={matchesConfig} />} />
+        <Route path="/sponsors" element={<ResourcePage config={sponsorsConfig} />} />
+        <Route path="/annonces" element={<AnnouncementsPage />} />
+
+        {/* Contenu */}
+        <Route path="/social" element={<SocialStudioPage />} />
+        <Route path="/creators" element={<ResourcePage config={creatorsConfig} />} />
+        <Route path="/clips" element={<ResourcePage config={clipsConfig} />} />
+        <Route path="/products" element={<ResourcePage config={productsConfig} />} />
+
+        {/* Admin */}
+        <Route path="/comptes" element={isAdmin ? <AccountsPage /> : <Navigate to="/" replace />} />
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Layout>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <Gate />
+      </AuthProvider>
+    </BrowserRouter>
+  );
+}

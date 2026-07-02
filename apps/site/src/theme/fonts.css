@@ -1,0 +1,9 @@
+/**
+ * Fonts Google (gratuites). Pour changer la typo, remplace l'import
+ * et mets à jour fontFamily dans tailwind.config.ts.
+ *   Display : Chakra Petch (alt : Saira Condensed, Michroma, Orbitron)
+ *   Data    : JetBrains Mono
+ *   Corps   : Inter
+ * (Effet glitch des titres jeux = traitement CSS `.title-glitch`, pas une font.)
+ */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap');

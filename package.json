@@ -1,0 +1,16 @@
+{
+  "name": "lignezero",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:site": "npm run dev -w @lignezero/site",
+    "dev:manager": "npm run dev -w @lignezero/manager",
+    "build:site": "npm run build -w @lignezero/site",
+    "build:manager": "npm run build -w @lignezero/manager"
+  }
+}

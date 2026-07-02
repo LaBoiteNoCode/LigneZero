@@ -1,0 +1,10 @@
+[build]
+  base = "apps/site"
+  command = "npm run build"
+  publish = "dist"
+
+# SPA : toutes les routes renvoient index.html (React Router gère le reste)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

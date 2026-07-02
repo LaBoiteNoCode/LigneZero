@@ -1,0 +1,61 @@
+/**
+ * ┌─ RE-SKIN ICI ─────────────────────────────────────────────────┐
+ * DA : BÉTON BRUTALIST + ROUGE SIGNAL.
+ * Surfaces matière (béton, grain, halftone), contraste clair/sombre,
+ * ombres DURES (offset solide, pas de glow néon). UN accent : rouge.
+ * Re-skin = ces variables.
+ * └───────────────────────────────────────────────────────────────┘
+ */
+:root {
+  /* Bases — charbon CHAUD (pas un noir bleuté froid) → texture béton */
+  --base-900: #121013;
+  --base-800: #1a1715;
+  --base-700: #242019;
+  --base-600: #2f2a22; /* facettes/biseaux */
+
+  /* Surfaces CLAIRES (blocs béton/papier en contraste — cassent le tout-noir) */
+  --concrete: #cfcabb;
+  --concrete-2: #b8b2a2;
+  --paper: #e8e4da;
+  --ink: #0d0d0b; /* texte sur surface claire */
+
+  /* Accent UNIQUE : rouge signal. Secondaire = bone (blocs inversés). */
+  --accent: #f23127;
+  --accent-2: #e8e4da;
+
+  /* Statuts (palette restreinte) */
+  --signal-live: #f23127;
+  --signal-ok: #b9b3a3;
+  --signal-warn: #d8a43a;
+
+  /* Lignes / blindage (gris chaud translucide) */
+  --line: rgba(200, 190, 170, 0.10);
+  --line-strong: rgba(205, 196, 178, 0.24);
+  --line-bright: rgba(220, 212, 196, 0.46);
+
+  /* Texte (blanc chaud) */
+  --text: #ece7dd;
+  --text-dim: #948c7d;
+  --text-mute: #635b4d;
+
+  /* Durées */
+  --dur-snap: 90ms;
+  --dur-ui: 200ms;
+  --dur-boot: 600ms;
+  --ease-mech: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Cutline + équerres */
+  --cut: 12px;
+  --corner: 14px;
+
+  /* Ombre brutalist (offset solide, profondeur sans glow) */
+  --ink-shadow: 7px 7px 0 0 var(--base-900);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-snap: 0ms;
+    --dur-ui: 0ms;
+    --dur-boot: 0ms;
+  }
+}

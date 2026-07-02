@@ -1,0 +1,51 @@
+@import './theme/tokens.css';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    background: var(--base-900);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Grille béton discrète en fond (sobre, non distrayante) */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    opacity: 0.5;
+  }
+}
+
+@layer components {
+  /* Libellé technique monospace */
+  .hud-label {
+    @apply font-mono uppercase tracking-hud text-[color:var(--text-mute)];
+  }
+  /* Panneau béton sobre : biseau léger, ombre dure discrète */
+  .panel {
+    @apply border border-line-strong bg-base-800;
+  }
+  /* Champ de formulaire */
+  .field {
+    @apply w-full border border-line-strong bg-base-900 px-3 py-2 font-mono text-sm text-[color:var(--text)]
+      outline-none transition-colors placeholder:text-[color:var(--text-mute)]
+      focus:border-[color:var(--accent)];
+  }
+  .label {
+    @apply mb-1 block font-mono text-[11px] uppercase tracking-hud text-[color:var(--text-dim)];
+  }
+}
