@@ -11,6 +11,8 @@ import type {
   SponsorTier,
   MatchStatus,
   ProductStatus,
+  Strat,
+  VideoReview,
 } from '@lignezero/types';
 import { db } from '@/lib/supabase';
 import {
@@ -45,7 +47,7 @@ export const gamesConfig: ResourceConfig<Game> = {
     { key: 'name', label: 'Nom', required: true },
     { key: 'tag', label: 'Sigle', required: true, placeholder: 'VAL' },
     { key: 'color', label: 'Couleur (hex)', placeholder: '#f23127' },
-    { key: 'visual', label: 'Visuel (chemin)', placeholder: '/img/games/valorant.jpg' },
+    { key: 'visual', label: 'Visuel', type: 'image', folder: 'games' },
     { key: 'stats', label: 'Stats (label | valeur)', type: 'pairs' },
     { key: 'palmares', label: 'Palmarès (un par ligne)', type: 'lines' },
   ],
@@ -95,7 +97,7 @@ export const staffConfig: ResourceConfig<Staff> = {
     { key: 'clearance', label: 'Habilitation', placeholder: 'Niveau 4' },
     { key: 'matricule', label: 'Matricule', placeholder: 'STF-001' },
     { key: 'since', label: 'Depuis (année)', type: 'number' },
-    { key: 'photo', label: 'Photo (chemin)', placeholder: '/img/staff/axis.jpg' },
+    { key: 'photo', label: 'Photo', type: 'image', folder: 'staff' },
     { key: 'bio', label: 'Bio', type: 'textarea' },
     { key: 'socials', label: 'Réseaux (label | url)', type: 'pairs' },
   ],
@@ -223,6 +225,7 @@ export const sponsorsConfig: ResourceConfig<Sponsor> = {
   columns: [
     { header: 'Nom', cell: (s) => <span className="text-[color:var(--text)]">{s.name}</span> },
     { header: 'Palier', cell: (s) => <Badge>{s.tier}</Badge> },
+    { header: 'État', cell: (s) => <Badge tone={s.status === 'actif' ? 'ok' : s.status === 'termine' ? 'live' : 'warn'}>{s.status}</Badge> },
     { header: 'Secteur', cell: (s) => s.sector ?? '—' },
   ],
   fields: () => [
@@ -239,10 +242,24 @@ export const sponsorsConfig: ResourceConfig<Sponsor> = {
         { value: 'technique', label: 'Technique' },
       ],
     },
+    {
+      key: 'status',
+      label: 'État (pipeline — seuls les actifs sont sur la vitrine)',
+      type: 'select',
+      required: true,
+      options: [
+        { value: 'prospect', label: 'Prospect' },
+        { value: 'contact', label: 'Contacté' },
+        { value: 'negociation', label: 'Négociation' },
+        { value: 'actif', label: 'Actif' },
+        { value: 'pause', label: 'En pause' },
+        { value: 'termine', label: 'Terminé' },
+      ],
+    },
     { key: 'url', label: 'URL', required: true },
     { key: 'sector', label: 'Secteur' },
     { key: 'since', label: 'Depuis (année)', type: 'number' },
-    { key: 'logo', label: 'Logo (chemin)' },
+    { key: 'logo', label: 'Logo', type: 'image', folder: 'sponsors' },
     { key: 'color', label: 'Couleur marque (hex)', placeholder: '#38c8d6' },
     { key: 'tagline', label: 'Accroche' },
     { key: 'description', label: 'Description', type: 'textarea' },
@@ -254,13 +271,14 @@ export const sponsorsConfig: ResourceConfig<Sponsor> = {
     { key: 'dActivation', label: 'Dossier · activation (un par ligne)', type: 'lines' },
   ],
   emptyDraft: {
-    id: '', name: '', tier: 'officiel', url: '', sector: '', since: '', logo: '', color: '', tagline: '',
+    id: '', name: '', tier: 'officiel', status: 'actif', url: '', sector: '', since: '', logo: '', color: '', tagline: '',
     description: '', contribution: '', dClassification: '', dAgent: '', dIntel: '', dStory: '', dActivation: '',
   },
   toDraft: (s) => ({
     id: s.id,
     name: s.name,
     tier: s.tier,
+    status: s.status,
     url: s.url,
     sector: s.sector ?? '',
     since: s.since?.toString() ?? '',
@@ -290,6 +308,7 @@ export const sponsorsConfig: ResourceConfig<Sponsor> = {
       id: d.id.trim(),
       name: d.name.trim(),
       tier: d.tier as SponsorTier,
+      status: (d.status || 'actif') as Sponsor['status'],
       url: d.url.trim(),
       sector: str(d.sector),
       since: num(d.since),
@@ -335,7 +354,7 @@ export const creatorsConfig: ResourceConfig<Creator> = {
     { key: 'live', label: 'En direct', type: 'checkbox', placeholder: 'Actuellement en live' },
     { key: 'title', label: 'Titre du live/vidéo' },
     { key: 'viewers', label: 'Spectateurs', type: 'number' },
-    { key: 'avatar', label: 'Avatar (chemin)' },
+    { key: 'avatar', label: 'Avatar', type: 'image', folder: 'creators' },
     { key: 'url', label: 'URL', required: true },
   ],
   emptyDraft: { id: '', name: '', role: '', platform: 'Twitch', live: '', title: '', viewers: '', avatar: '', url: '' },
@@ -382,7 +401,7 @@ export const clipsConfig: ResourceConfig<Clip> = {
     { key: 'title', label: 'Titre', required: true },
     { key: 'author', label: 'Auteur', required: true },
     { key: 'game', label: 'Jeu' },
-    { key: 'thumb', label: 'Vignette (chemin)' },
+    { key: 'thumb', label: 'Vignette', type: 'image', folder: 'clips' },
     { key: 'url', label: 'URL', required: true },
   ],
   emptyDraft: { id: '', title: '', author: '', game: '', thumb: '', url: '' },
@@ -419,7 +438,7 @@ export const productsConfig: ResourceConfig<Product> = {
     { key: 'name', label: 'Nom', required: true },
     { key: 'category', label: 'Catégorie', required: true },
     { key: 'price', label: 'Prix', placeholder: '29,90 €' },
-    { key: 'image', label: 'Image (chemin)' },
+    { key: 'image', label: 'Image', type: 'image', folder: 'products' },
     {
       key: 'status',
       label: 'Statut',
@@ -446,4 +465,74 @@ export const productsConfig: ResourceConfig<Product> = {
   load: () => db.listProducts(),
   save: (p) => db.upsertProduct(p),
   remove: (id) => db.removeProduct(id),
+};
+
+// ── Strats (bibliothèque de tactiques/executes) ────────────────────────
+export const stratsConfig: ResourceConfig<Strat> = {
+  code: 'STR // Strats',
+  title: 'Bibliothèque de strats',
+  rowKey: (s) => s.id,
+  rowTitle: (s) => s.title,
+  columns: [
+    { header: 'Titre', cell: (s) => <span className="text-[color:var(--text)]">{s.title}</span> },
+    {
+      header: 'Jeu',
+      cell: (s, ctx) => {
+        const games = (ctx.games as Game[]) ?? [];
+        return games.find((g) => g.id === s.gameId)?.name ?? '—';
+      },
+    },
+    { header: 'Map', cell: (s) => s.map ?? '—' },
+    { header: 'Tags', cell: (s) => (s.tags.length > 0 ? s.tags.map((t) => <Badge key={t}>{t}</Badge>) : '—') },
+  ],
+  fields: (ctx) => [
+    { key: 'id', label: 'ID (slug unique)', idField: true, required: true, placeholder: 'strat-smoke-a-site' },
+    { key: 'title', label: 'Titre', required: true, placeholder: 'Smoke A + rush' },
+    {
+      key: 'gameId',
+      label: 'Jeu',
+      type: 'select',
+      options: ((ctx.games as Game[]) ?? []).map((g) => ({ value: g.id, label: g.name })),
+    },
+    { key: 'map', label: 'Map', placeholder: 'Ascent' },
+    { key: 'description', label: 'Description', type: 'textarea', full: true, required: true },
+    { key: 'tags', label: 'Tags (un par ligne)', type: 'lines' },
+    {
+      key: 'reviewId',
+      label: 'Revue vidéo liée (optionnel, pour la démonstration)',
+      type: 'select',
+      options: ((ctx.reviews as VideoReview[]) ?? []).map((r) => ({ value: r.id, label: r.title })),
+    },
+    { key: 'timestampSec', label: 'Instant dans la revue (secondes)', type: 'number' },
+  ],
+  emptyDraft: { id: '', title: '', gameId: '', map: '', description: '', tags: '', reviewId: '', timestampSec: '' },
+  toDraft: (s) => ({
+    id: s.id,
+    title: s.title,
+    gameId: s.gameId ?? '',
+    map: s.map ?? '',
+    description: s.description,
+    tags: arrToLines(s.tags),
+    reviewId: s.reviewId ?? '',
+    timestampSec: s.timestampSec?.toString() ?? '',
+  }),
+  fromDraft: (d) => ({
+    id: d.id.trim(),
+    title: d.title.trim(),
+    gameId: str(d.gameId),
+    map: str(d.map),
+    description: d.description.trim(),
+    tags: linesToArr(d.tags),
+    reviewId: str(d.reviewId),
+    timestampSec: num(d.timestampSec),
+    // ignoré à l'écriture (toStratRow) — la DB pose created_at par défaut.
+    createdAt: new Date().toISOString(),
+  }),
+  load: () => db.listStrats(),
+  save: (s) => db.upsertStrat(s),
+  remove: (id) => db.removeStrat(id),
+  loadContext: async () => {
+    const [games, reviews] = await Promise.all([db.listGames(), db.listVideoReviews()]);
+    return { games, reviews };
+  },
 };

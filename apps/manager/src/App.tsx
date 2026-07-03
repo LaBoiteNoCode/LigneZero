@@ -13,10 +13,15 @@ import { MyProfilePage } from '@/pages/MyProfilePage';
 import { ObjectivesPage } from '@/pages/ObjectivesPage';
 import { FeedbackPage } from '@/pages/FeedbackPage';
 import { SessionsPage } from '@/pages/SessionsPage';
+import { VideoReviewPage } from '@/pages/VideoReviewPage';
 import { CalendarPage } from '@/pages/CalendarPage';
 import { TeamAvailabilityPage } from '@/pages/TeamAvailabilityPage';
 import { AnnouncementsPage } from '@/pages/AnnouncementsPage';
 import { AccountsPage } from '@/pages/AccountsPage';
+import { MatchHubPage } from '@/pages/MatchHubPage';
+import { SponsorTrackingPage } from '@/pages/SponsorTrackingPage';
+import { DesignRequestsPage } from '@/pages/DesignRequestsPage';
+import { FinancePage } from '@/pages/FinancePage';
 import {
   gamesConfig,
   staffConfig,
@@ -24,6 +29,7 @@ import {
   creatorsConfig,
   clipsConfig,
   productsConfig,
+  stratsConfig,
 } from '@/resources/configs';
 
 /** Écran "compte en attente de validation" (rôle member). */
@@ -44,7 +50,7 @@ function Pending() {
 }
 
 function Gate() {
-  const { loading, session, isActive, isAdmin, role } = useAuth();
+  const { loading, session, isActive, isAdmin, isManager, isContent, isPerf, role } = useAuth();
 
   if (loading) {
     return (
@@ -70,22 +76,28 @@ function Gate() {
         <Route path="/feedback" element={<FeedbackPage />} />
         <Route path="/sessions" element={<SessionsPage />} />
         <Route path="/dispos" element={<TeamAvailabilityPage />} />
+        <Route path="/review" element={<VideoReviewPage />} />
+        <Route path="/strats" element={<ResourcePage config={stratsConfig} canWrite={isPerf} />} />
 
         {/* Direction */}
         <Route path="/players" element={<PlayersPage />} />
-        <Route path="/staff" element={<ResourcePage config={staffConfig} />} />
-        <Route path="/games" element={<ResourcePage config={gamesConfig} />} />
+        <Route path="/staff" element={<ResourcePage config={staffConfig} canWrite={isManager} />} />
+        <Route path="/games" element={<ResourcePage config={gamesConfig} canWrite={isManager} />} />
         <Route path="/matches" element={<CalendarPage />} />
-        <Route path="/sponsors" element={<ResourcePage config={sponsorsConfig} />} />
+        <Route path="/matches/:matchId" element={<MatchHubPage />} />
+        <Route path="/sponsors" element={<ResourcePage config={sponsorsConfig} canWrite={isManager} />} />
+        <Route path="/suivi-sponsors" element={isManager ? <SponsorTrackingPage /> : <Navigate to="/" replace />} />
         <Route path="/annonces" element={<AnnouncementsPage />} />
 
         {/* Contenu */}
         <Route path="/social" element={<SocialStudioPage />} />
-        <Route path="/creators" element={<ResourcePage config={creatorsConfig} />} />
-        <Route path="/clips" element={<ResourcePage config={clipsConfig} />} />
-        <Route path="/products" element={<ResourcePage config={productsConfig} />} />
+        <Route path="/design" element={<DesignRequestsPage />} />
+        <Route path="/creators" element={<ResourcePage config={creatorsConfig} canWrite={isContent} />} />
+        <Route path="/clips" element={<ResourcePage config={clipsConfig} canWrite={isContent} />} />
+        <Route path="/products" element={<ResourcePage config={productsConfig} canWrite={isContent} />} />
 
         {/* Admin */}
+        <Route path="/finance" element={isAdmin ? <FinancePage /> : <Navigate to="/" replace />} />
         <Route path="/comptes" element={isAdmin ? <AccountsPage /> : <Navigate to="/" replace />} />
 
         <Route path="*" element={<Navigate to="/" replace />} />

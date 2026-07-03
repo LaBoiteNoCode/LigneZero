@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Feedback, Match, Player } from '@lignezero/types';
 import { db } from '@/lib/supabase';
 import { useAuth } from '@/auth/AuthProvider';
 import { Badge, Button, Modal, Panel, Spinner } from '@/components/ui';
+import { formatTimestamp } from '@/lib/video';
 
 export function FeedbackPage() {
   const { isPerf, playerId } = useAuth();
@@ -85,6 +87,17 @@ function FeedbackCard({ f, who, mine, isPerf, onChange }: { f: Feedback; who: st
         </div>
       </div>
       <p className="font-mono text-sm text-[color:var(--text)]">{f.body}</p>
+
+      {/* Feedback issu d'un checkpoint de revue vidéo → lien vers l'instant précis. */}
+      {f.reviewId != null && (
+        <Link
+          to={`/review?open=${f.reviewId}${f.timestampSec != null ? `&t=${f.timestampSec}` : ''}`}
+          className="mt-2 inline-flex items-center gap-2 border border-line-strong px-2.5 py-1 font-mono text-[11px] uppercase tracking-hud text-accent transition-colors hover:border-accent"
+        >
+          ▶ Voir le checkpoint{f.timestampSec != null ? ` · ${formatTimestamp(f.timestampSec)}` : ''}
+        </Link>
+      )}
+
       {f.reply && <p className="mt-2 border-l-2 border-line-strong pl-3 font-mono text-xs text-[color:var(--text-dim)]">↳ {f.reply}</p>}
 
       {/* le joueur concerné peut répondre / accuser réception */}

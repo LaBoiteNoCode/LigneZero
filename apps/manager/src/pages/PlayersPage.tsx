@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { Game, Player, PlayerStat, SocialLink } from '@lignezero/types';
 import { db } from '@/lib/supabase';
 import { Button, Badge, Modal, Panel, Spinner } from '@/components/ui';
+import { ImageField } from '@/components/ImageField';
 
 // ── Encodage listes ⇄ textarea (édition simple, une entrée par ligne) ──
 const linesToArr = (s: string) => s.split('\n').map((l) => l.trim()).filter(Boolean);
@@ -26,6 +27,7 @@ const EMPTY: Player = {
   socials: [],
   stats: [],
   palmares: [],
+  setup: [],
 };
 
 export function PlayersPage() {
@@ -154,6 +156,7 @@ function PlayerForm({
   const [socialsText, setSocialsText] = useState(socialsToText(player.socials));
   const [statsText, setStatsText] = useState(statsToText(player.stats));
   const [palmaresText, setPalmaresText] = useState(player.palmares.join('\n'));
+  const [setupText, setSetupText] = useState(statsToText(player.setup));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -172,6 +175,7 @@ function PlayerForm({
         socials: pairsToSocials(socialsText),
         stats: pairsToStats(statsText),
         palmares: linesToArr(palmaresText),
+        setup: pairsToStats(setupText),
       });
       onSaved();
     } catch (e) {
@@ -220,8 +224,8 @@ function PlayerForm({
         <Field label="Couleur (hex)">
           <input className="field" value={form.color ?? ''} onChange={(e) => set('color', e.target.value)} placeholder="#f23127" />
         </Field>
-        <Field label="Photo (chemin)">
-          <input className="field" value={form.photo ?? ''} onChange={(e) => set('photo', e.target.value)} placeholder="/img/players/neo.jpg" />
+        <Field label="Photo">
+          <ImageField value={form.photo ?? ''} onChange={(url) => set('photo', url)} folder="players" />
         </Field>
         <Field label="Année d'arrivée">
           <input
@@ -236,6 +240,9 @@ function PlayerForm({
         </Field>
         <Field label="Stats (label | valeur, un par ligne)" full>
           <textarea className="field h-20" value={statsText} onChange={(e) => setStatsText(e.target.value)} />
+        </Field>
+        <Field label="Setup (ex. Souris | Logitech G Pro X Superlight 2, un par ligne)" full>
+          <textarea className="field h-20" value={setupText} onChange={(e) => setSetupText(e.target.value)} />
         </Field>
         <Field label="Palmarès (un par ligne)" full>
           <textarea className="field h-20" value={palmaresText} onChange={(e) => setPalmaresText(e.target.value)} />

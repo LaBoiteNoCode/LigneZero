@@ -52,7 +52,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
           db.listClips(),
           db.listProducts(),
         ]);
-      setData({ games, players, staff, sponsors, matches, creators, clips, products });
+      // Le pipeline de suivi (manager) marque l'état de chaque partenariat :
+      // la vitrine n'affiche QUE les partenaires actifs.
+      const activeSponsors = sponsors.filter((s) => s.status === 'actif');
+      setData({ games, players, staff, sponsors: activeSponsors, matches, creators, clips, products });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Signal perdu');
     }

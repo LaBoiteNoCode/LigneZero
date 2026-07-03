@@ -3,7 +3,7 @@ import type { Player, Profile, UserRole } from '@lignezero/types';
 import { db } from '@/lib/supabase';
 import { Badge, Panel, Spinner } from '@/components/ui';
 
-const ROLES: UserRole[] = ['member', 'joueur', 'coach', 'staff', 'content', 'manager', 'admin'];
+const ROLES: UserRole[] = ['member', 'joueur', 'coach', 'staff', 'content', 'graphiste', 'manager', 'admin'];
 
 export function AccountsPage() {
   const [profiles, setProfiles] = useState<Profile[] | null>(null);

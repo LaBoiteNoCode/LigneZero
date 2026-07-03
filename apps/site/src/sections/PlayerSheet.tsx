@@ -99,6 +99,21 @@ export function PlayerSheet({ player, game, onClose }: PlayerSheetProps) {
             </div>
           )}
 
+          {/* setup */}
+          {player.setup.length > 0 && (
+            <div className="mt-5">
+              <p className="hud-label mb-2 text-[10px]">[ Setup ]</p>
+              <dl className="space-y-1 font-mono text-xs">
+                {player.setup.map((s) => (
+                  <div key={s.label} className="flex justify-between gap-3">
+                    <dt className="text-[color:var(--text-mute)]">{s.label}</dt>
+                    <dd className="text-right text-[color:var(--text-dim)]">{s.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
           {/* méta + socials */}
           <div className="mt-5 flex flex-wrap items-center gap-3 border-t border-line pt-4">
             {player.joinedYear && (

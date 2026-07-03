@@ -102,6 +102,21 @@ export default function PlayerPage() {
             </div>
           )}
 
+          {/* setup */}
+          {player.setup.length > 0 && (
+            <div className="mt-8">
+              <p className="hud-label mb-3 text-[10px]">[ Setup ]</p>
+              <dl className="space-y-1.5 border-t border-line pt-3 font-mono text-sm">
+                {player.setup.map((s) => (
+                  <div key={s.label} className="flex justify-between gap-3">
+                    <dt className="text-[color:var(--text-mute)]">{s.label}</dt>
+                    <dd className="text-right text-[color:var(--text-dim)]">{s.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+
           {/* matchs liés */}
           {playerMatches.length > 0 && (
             <div className="mt-8">

@@ -11,9 +11,9 @@ export interface NavItem {
   roles: UserRole[];
 }
 
-const ALL: UserRole[] = ['admin', 'manager', 'coach', 'joueur', 'staff', 'content'];
+const ALL: UserRole[] = ['admin', 'manager', 'coach', 'joueur', 'staff', 'content', 'graphiste'];
 const DIR: UserRole[] = ['admin', 'manager'];
-const CONTENT: UserRole[] = ['admin', 'manager', 'content'];
+const CONTENT: UserRole[] = ['admin', 'manager', 'content', 'graphiste'];
 
 export const NAV: NavItem[] = [
   { path: '/', label: 'Tableau de bord', code: 'DASH', section: 'Espace', roles: ALL },
@@ -28,21 +28,26 @@ export const NAV: NavItem[] = [
   { path: '/feedback', label: 'Feedback', code: 'FDBK', section: 'Performance', roles: ['admin', 'manager', 'coach', 'joueur'] },
   { path: '/sessions', label: 'Sessions & scrims', code: 'SESS', section: 'Performance', roles: ['admin', 'manager', 'coach', 'joueur', 'staff'] },
   { path: '/dispos', label: 'Dispos équipe', code: 'GRID', section: 'Performance', roles: ['admin', 'manager', 'coach', 'staff'] },
+  { path: '/review', label: 'Revue vidéo', code: 'VOD', section: 'Performance', roles: ['admin', 'manager', 'coach', 'joueur', 'staff'] },
+  { path: '/strats', label: 'Strats', code: 'STR', section: 'Performance', roles: ALL },
 
   // Direction
   { path: '/players', label: 'Joueurs', code: 'PLR', section: 'Direction', roles: ['admin', 'manager', 'coach', 'staff'] },
   { path: '/staff', label: 'Staff', code: 'STF', section: 'Direction', roles: DIR },
   { path: '/games', label: 'Jeux', code: 'GAM', section: 'Direction', roles: DIR },
   { path: '/sponsors', label: 'Sponsors', code: 'SPN', section: 'Direction', roles: DIR },
+  { path: '/suivi-sponsors', label: 'Suivi sponsors', code: 'TRK', section: 'Direction', roles: DIR },
   { path: '/annonces', label: 'Annonces', code: 'ANN', section: 'Direction', roles: ALL },
 
   // Contenu
   { path: '/social', label: 'Studio réseaux', code: 'SOC', section: 'Contenu', roles: CONTENT },
+  { path: '/design', label: 'Studio graphique', code: 'GFX', section: 'Contenu', roles: ALL },
   { path: '/creators', label: 'Créateurs', code: 'CRT', section: 'Contenu', roles: CONTENT },
   { path: '/clips', label: 'Clips', code: 'CLP', section: 'Contenu', roles: CONTENT },
   { path: '/products', label: 'Boutique', code: 'PRD', section: 'Contenu', roles: CONTENT },
 
   // Admin
+  { path: '/finance', label: 'Finance', code: 'FIN', section: 'Admin', roles: ['admin'] },
   { path: '/comptes', label: 'Comptes & rôles', code: 'ACL', section: 'Admin', roles: ['admin'] },
 ];
 

@@ -21,6 +21,18 @@ import type {
   Session,
   SessionRsvp,
   Availability,
+  VideoReview,
+  VideoAnnotation,
+  MatchPlayerStat,
+  Strat,
+  InventoryItem,
+  FavoriteMatch,
+  MemberLinks,
+  SponsorStatus,
+  SponsorTracking,
+  DesignRequest,
+  DesignStatus,
+  Transaction,
 } from '@lignezero/types';
 import type { LigneZeroClient } from './client';
 import {
@@ -53,6 +65,25 @@ import {
   toRsvpRow,
   fromAvailabilityRow,
   toAvailabilityRow,
+  fromVideoReviewRow,
+  toVideoReviewRow,
+  fromVideoAnnotationRow,
+  toVideoAnnotationRow,
+  fromMatchPlayerStatRow,
+  toMatchPlayerStatRow,
+  fromStratRow,
+  toStratRow,
+  fromInventoryItemRow,
+  fromFavoriteMatchRow,
+  toFavoriteMatchRow,
+  fromMemberLinksRow,
+  toMemberLinksRow,
+  fromSponsorTrackingRow,
+  toSponsorTrackingRow,
+  fromDesignRequestRow,
+  toDesignRequestRow,
+  fromTransactionRow,
+  toTransactionRow,
 } from './mappers';
 
 function unwrap<T>(data: T | null, error: { message: string } | null): T {
@@ -100,7 +131,16 @@ export function createQueries(sb: LigneZeroClient) {
     /** MAJ profil joueur (sous-ensemble éditable par le joueur lui-même). */
     async updatePlayerProfile(
       id: string,
-      f: { pseudo: string; firstName?: string; lastName?: string; country?: string; color?: string; photo?: string; socials: Player['socials'] },
+      f: {
+        pseudo: string;
+        firstName?: string;
+        lastName?: string;
+        country?: string;
+        color?: string;
+        photo?: string;
+        socials: Player['socials'];
+        setup: Player['setup'];
+      },
     ): Promise<void> {
       const { error } = await sb
         .from('players')
@@ -112,6 +152,7 @@ export function createQueries(sb: LigneZeroClient) {
           color: f.color ?? null,
           photo: f.photo ?? null,
           socials: (f.socials ?? []) as unknown as import('./database.types').TablesInsert<'players'>['socials'],
+          setup: (f.setup ?? []) as unknown as import('./database.types').TablesInsert<'players'>['setup'],
         })
         .eq('id', id);
       unwrap(null, error);
@@ -308,6 +349,150 @@ export function createQueries(sb: LigneZeroClient) {
     },
     async removeAvailability(id: string): Promise<void> {
       const { error } = await sb.from('availability').delete().eq('id', id);
+      unwrap(null, error);
+    },
+
+    // ── Revue vidéo ──
+    async listVideoReviews(): Promise<VideoReview[]> {
+      const { data, error } = await sb.from('video_reviews').select('*').order('created_at', { ascending: false });
+      return unwrap(data, error).map(fromVideoReviewRow);
+    },
+    async upsertVideoReview(v: Partial<VideoReview>): Promise<void> {
+      const { error } = await sb.from('video_reviews').upsert(toVideoReviewRow(v));
+      unwrap(null, error);
+    },
+    async removeVideoReview(id: string): Promise<void> {
+      const { error } = await sb.from('video_reviews').delete().eq('id', id);
+      unwrap(null, error);
+    },
+    async listVideoAnnotations(reviewId?: string): Promise<VideoAnnotation[]> {
+      let q = sb.from('video_annotations').select('*').order('timestamp_sec');
+      if (reviewId) q = q.eq('review_id', reviewId);
+      const { data, error } = await q;
+      return unwrap(data, error).map(fromVideoAnnotationRow);
+    },
+    async upsertVideoAnnotation(a: Partial<VideoAnnotation>): Promise<void> {
+      const { error } = await sb.from('video_annotations').upsert(toVideoAnnotationRow(a));
+      unwrap(null, error);
+    },
+    async removeVideoAnnotation(id: string): Promise<void> {
+      const { error } = await sb.from('video_annotations').delete().eq('id', id);
+      unwrap(null, error);
+    },
+
+    // ── Stats par match ──
+    async listMatchStats(matchId?: string): Promise<MatchPlayerStat[]> {
+      let q = sb.from('match_player_stats').select('*');
+      if (matchId) q = q.eq('match_id', matchId);
+      const { data, error } = await q;
+      return unwrap(data, error).map(fromMatchPlayerStatRow);
+    },
+    async upsertMatchStat(s: Partial<MatchPlayerStat>): Promise<void> {
+      const { error } = await sb.from('match_player_stats').upsert(toMatchPlayerStatRow(s), { onConflict: 'match_id,player_id' });
+      unwrap(null, error);
+    },
+    async removeMatchStat(id: string): Promise<void> {
+      const { error } = await sb.from('match_player_stats').delete().eq('id', id);
+      unwrap(null, error);
+    },
+
+    // ── Strats ──
+    async listStrats(): Promise<Strat[]> {
+      const { data, error } = await sb.from('strats').select('*').order('created_at', { ascending: false });
+      return unwrap(data, error).map(fromStratRow);
+    },
+    async upsertStrat(s: Strat): Promise<void> {
+      const { error } = await sb.from('strats').upsert(toStratRow(s));
+      unwrap(null, error);
+    },
+    async removeStrat(id: string): Promise<void> {
+      const { error } = await sb.from('strats').delete().eq('id', id);
+      unwrap(null, error);
+    },
+
+    // ── Compte membre (site) ──
+    /** RLS filtre déjà sur le propriétaire — pas besoin de connaître son uid ici. */
+    async listMyInventory(): Promise<InventoryItem[]> {
+      const { data, error } = await sb.from('inventory_items').select('*').order('obtained_at', { ascending: false });
+      return unwrap(data, error).map(fromInventoryItemRow);
+    },
+    async listMyFavorites(): Promise<FavoriteMatch[]> {
+      const { data, error } = await sb.from('favorite_matches').select('*');
+      return unwrap(data, error).map(fromFavoriteMatchRow);
+    },
+    async addFavorite(matchId: string): Promise<void> {
+      const { data: u } = await sb.auth.getUser();
+      const uid = u.user?.id;
+      if (!uid) throw new Error('[supabase] Non connecté.');
+      const { error } = await sb.from('favorite_matches').insert(toFavoriteMatchRow({ ownerId: uid, matchId }));
+      unwrap(null, error);
+    },
+    async removeFavorite(matchId: string): Promise<void> {
+      const { data: u } = await sb.auth.getUser();
+      const uid = u.user?.id;
+      if (!uid) throw new Error('[supabase] Non connecté.');
+      const { error } = await sb.from('favorite_matches').delete().eq('owner_id', uid).eq('match_id', matchId);
+      unwrap(null, error);
+    },
+    async getMyLinks(): Promise<MemberLinks | null> {
+      const { data: u } = await sb.auth.getUser();
+      const uid = u.user?.id;
+      if (!uid) return null;
+      const { data, error } = await sb.from('member_links').select('*').eq('owner_id', uid).maybeSingle();
+      if (error) throw new Error(`[supabase] ${error.message}`);
+      return data ? fromMemberLinksRow(data) : null;
+    },
+    async upsertMyLinks(links: Omit<MemberLinks, 'ownerId'>): Promise<void> {
+      const { data: u } = await sb.auth.getUser();
+      const uid = u.user?.id;
+      if (!uid) throw new Error('[supabase] Non connecté.');
+      const { error } = await sb.from('member_links').upsert(toMemberLinksRow({ ownerId: uid, ...links }));
+      unwrap(null, error);
+    },
+
+    // ── Suivi sponsors (privé manager) ──
+    async setSponsorStatus(id: string, status: SponsorStatus): Promise<void> {
+      const { error } = await sb.from('sponsors').update({ status }).eq('id', id);
+      unwrap(null, error);
+    },
+    async listSponsorTracking(): Promise<SponsorTracking[]> {
+      const { data, error } = await sb.from('sponsor_tracking').select('*');
+      return unwrap(data, error).map(fromSponsorTrackingRow);
+    },
+    async upsertSponsorTracking(t: SponsorTracking): Promise<void> {
+      const { error } = await sb.from('sponsor_tracking').upsert(toSponsorTrackingRow(t));
+      unwrap(null, error);
+    },
+
+    // ── Demandes graphiques ──
+    async listDesignRequests(): Promise<DesignRequest[]> {
+      const { data, error } = await sb.from('design_requests').select('*').order('created_at', { ascending: false });
+      return unwrap(data, error).map(fromDesignRequestRow);
+    },
+    async upsertDesignRequest(d: Partial<DesignRequest>): Promise<void> {
+      const { error } = await sb.from('design_requests').upsert(toDesignRequestRow(d));
+      unwrap(null, error);
+    },
+    async setDesignStatus(id: string, status: DesignStatus): Promise<void> {
+      const { error } = await sb.from('design_requests').update({ status }).eq('id', id);
+      unwrap(null, error);
+    },
+    async removeDesignRequest(id: string): Promise<void> {
+      const { error } = await sb.from('design_requests').delete().eq('id', id);
+      unwrap(null, error);
+    },
+
+    // ── Finance (RLS : admin/CEO uniquement) ──
+    async listTransactions(): Promise<Transaction[]> {
+      const { data, error } = await sb.from('transactions').select('*').order('tx_date', { ascending: false });
+      return unwrap(data, error).map(fromTransactionRow);
+    },
+    async upsertTransaction(t: Partial<Transaction>): Promise<void> {
+      const { error } = await sb.from('transactions').upsert(toTransactionRow(t));
+      unwrap(null, error);
+    },
+    async removeTransaction(id: string): Promise<void> {
+      const { error } = await sb.from('transactions').delete().eq('id', id);
       unwrap(null, error);
     },
   };

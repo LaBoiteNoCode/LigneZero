@@ -53,6 +53,8 @@ export interface Player {
   stats: PlayerStat[];
   palmares: string[];
   joinedYear?: number;
+  /** Setup gaming (souris, clavier, tapis, écran…) — renseigné par le joueur. */
+  setup: PlayerStat[];
 }
 
 export interface Staff {
@@ -73,6 +75,9 @@ export interface Staff {
 }
 
 export type SponsorTier = 'principal' | 'officiel' | 'technique';
+
+/** État du partenariat dans le pipeline de suivi (public : pilote la vitrine). */
+export type SponsorStatus = 'prospect' | 'contact' | 'negociation' | 'actif' | 'pause' | 'termine';
 
 export interface SponsorDossier {
   classification?: string;
@@ -106,6 +111,21 @@ export interface Sponsor {
   contribution?: string;
   /** Contenu "dossier d'enquête" (lore pour la commu). */
   dossier?: SponsorDossier;
+  /** État du pipeline — seuls les 'actif' apparaissent sur la vitrine. */
+  status: SponsorStatus;
+}
+
+/** Suivi business d'un sponsor — table PRIVÉE (manager/admin uniquement). */
+export interface SponsorTracking {
+  sponsorId: string;
+  /** Date ISO (jour). */
+  contractStart?: string;
+  contractEnd?: string;
+  /** Valeur annuelle du contrat (€). */
+  valueAnnual?: number;
+  contactName?: string;
+  contactEmail?: string;
+  notes?: string;
 }
 
 export type MatchStatus = 'upcoming' | 'live' | 'finished';
@@ -175,7 +195,7 @@ export interface Product {
 }
 
 /** Rôle d'un compte (profiles.role côté Supabase). */
-export type UserRole = 'admin' | 'manager' | 'coach' | 'joueur' | 'staff' | 'content' | 'member';
+export type UserRole = 'admin' | 'manager' | 'coach' | 'joueur' | 'staff' | 'content' | 'graphiste' | 'member';
 
 export interface Profile {
   id: string;
@@ -219,6 +239,9 @@ export interface Feedback {
   body: string;
   acknowledged: boolean;
   reply?: string;
+  /** Renvoie à un checkpoint précis d'une revue vidéo (auto-créé depuis la revue). */
+  reviewId?: string;
+  timestampSec?: number;
   createdAt: string;
 }
 
@@ -258,4 +281,118 @@ export interface Availability {
   endTime?: string;
   status: AvailabilityStatus;
   note?: string;
+}
+
+/** Revue vidéo : un VOD (YouTube/Twitch/autre) sur lequel le staff pose des annotations. */
+export interface VideoReview {
+  id: string;
+  title: string;
+  videoUrl: string;
+  /** Jeu concerné (optionnel). */
+  gameId?: string;
+  /** Session de revue liée (calendrier), optionnelle. */
+  sessionId?: string;
+  /** Match précis auquel cette revue se rapporte (hub match), optionnel. */
+  matchId?: string;
+  createdAt: string;
+}
+
+/** Checkpoint horodaté sur une VideoReview. Sans playerId = remarque pour toute l'équipe. */
+export interface VideoAnnotation {
+  id: string;
+  reviewId: string;
+  /** Instant dans la vidéo, en secondes. */
+  timestampSec: number;
+  tag: string;
+  description: string;
+  playerId?: string;
+  createdAt: string;
+}
+
+/** Stats d'un joueur pour un match précis (hub match) — même forme que PlayerStat. */
+export interface MatchPlayerStat {
+  id: string;
+  matchId: string;
+  playerId: string;
+  stats: PlayerStat[];
+}
+
+/** Objet d'inventaire membre. Attribué par un bot Twitch/Discord externe (lecture seule côté site). */
+export type InventoryItemKind = 'ticket' | 'cartouche' | 'special';
+
+export interface InventoryItem {
+  id: string;
+  ownerId: string;
+  kind: InventoryItemKind;
+  name: string;
+  description?: string;
+  image?: string;
+  /** Origine du drop (ex. 'twitch', 'discord', 'manuel'). */
+  source?: string;
+  obtainedAt: string;
+}
+
+/** Match marqué favori par un membre (auto-service). */
+export interface FavoriteMatch {
+  ownerId: string;
+  matchId: string;
+}
+
+/** Comptes externes liés (pour que le bot de drops retrouve le bon membre). */
+export interface MemberLinks {
+  ownerId: string;
+  discordHandle?: string;
+  twitchHandle?: string;
+}
+
+/** Entrée de bibliothèque de strats/executes, taguée par jeu/map. */
+export interface Strat {
+  id: string;
+  title: string;
+  gameId?: string;
+  map?: string;
+  description: string;
+  tags: string[];
+  /** Renvoie vers un instant précis d'une revue vidéo (démonstration). */
+  reviewId?: string;
+  timestampSec?: number;
+  createdAt: string;
+}
+
+// ── Studio graphique (demandes de visuels traitées par les graphistes) ──
+
+export type DesignKind = 'reseaux' | 'maillot' | 'overlay' | 'print' | 'logo' | 'autre';
+export type DesignStatus = 'todo' | 'doing' | 'review' | 'done';
+
+export interface DesignRequest {
+  id: string;
+  title: string;
+  /** Brief / consignes. */
+  brief?: string;
+  kind: DesignKind;
+  status: DesignStatus;
+  /** Échéance (date ISO jour). */
+  due?: string;
+  /** Lien vers le livrable (Drive, Figma, export…). */
+  assetUrl?: string;
+  createdAt: string;
+}
+
+// ── Finance (accès CEO/admin uniquement — RLS stricte) ──
+
+export type TransactionKind = 'depense' | 'revenu';
+
+export interface Transaction {
+  id: string;
+  kind: TransactionKind;
+  /** Catégorie libre (Sponsoring, Salaires, Déplacements, Merch…). */
+  category: string;
+  label: string;
+  /** Montant positif (€) — le sens vient de `kind`. */
+  amount: number;
+  /** Date de la transaction (ISO jour). */
+  date: string;
+  /** Sponsor lié (revenus de sponsoring). */
+  sponsorId?: string;
+  notes?: string;
 }

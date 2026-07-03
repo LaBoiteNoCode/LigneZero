@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import type { Game, Match, RsvpStatus, Session, SessionRsvp } from '@lignezero/types';
 import { db } from '@/lib/supabase';
 import { useAuth } from '@/auth/AuthProvider';
@@ -223,18 +224,43 @@ function EventCard({
   const meta = KIND_META[e.type];
   const time = e.start.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
   const isSession = e.source === 'session';
+  const isMatch = e.source === 'match';
+
+  const body = (
+    <>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-mono text-[10px] uppercase tracking-hud" style={{ color: meta.color }}>{time} · {meta.label}</span>
+        {e.gameTag && <span className="font-mono text-[9px] text-[color:var(--text-mute)]">{e.gameTag}</span>}
+      </div>
+      <p className="mt-0.5 truncate font-display text-sm font-bold uppercase text-[color:var(--text)]">{e.title}</p>
+      {e.sub && e.sub !== meta.label && <p className="truncate font-mono text-[10px] text-[color:var(--text-mute)]">{e.sub}</p>}
+      {e.location && <p className="truncate font-mono text-[10px] text-[color:var(--text-dim)]">📍 {e.location}</p>}
+    </>
+  );
 
   return (
     <div className="bg-base-900/70 shadow-ink" style={{ borderLeft: `3px solid ${meta.color}` }}>
-      <button onClick={onEdit} disabled={!canEdit} className={`block w-full px-2.5 py-2 text-left ${canEdit ? 'hover:bg-base-700/50' : 'cursor-default'}`}>
-        <div className="flex items-center justify-between gap-2">
-          <span className="font-mono text-[10px] uppercase tracking-hud" style={{ color: meta.color }}>{time} · {meta.label}</span>
-          {e.gameTag && <span className="font-mono text-[9px] text-[color:var(--text-mute)]">{e.gameTag}</span>}
+      {isMatch ? (
+        <div className="relative">
+          <Link to={`/matches/${(e.raw as Match).id}`} className="block w-full px-2.5 py-2 text-left hover:bg-base-700/50">
+            {body}
+          </Link>
+          {canEdit && (
+            <button
+              type="button"
+              onClick={onEdit}
+              title="Éditer le match"
+              className="absolute right-1.5 top-1.5 font-mono text-[10px] text-[color:var(--text-mute)] hover:text-accent"
+            >
+              ✎
+            </button>
+          )}
         </div>
-        <p className="mt-0.5 truncate font-display text-sm font-bold uppercase text-[color:var(--text)]">{e.title}</p>
-        {e.sub && e.sub !== meta.label && <p className="truncate font-mono text-[10px] text-[color:var(--text-mute)]">{e.sub}</p>}
-        {e.location && <p className="truncate font-mono text-[10px] text-[color:var(--text-dim)]">📍 {e.location}</p>}
-      </button>
+      ) : (
+        <button onClick={onEdit} disabled={!canEdit} className={`block w-full px-2.5 py-2 text-left ${canEdit ? 'hover:bg-base-700/50' : 'cursor-default'}`}>
+          {body}
+        </button>
+      )}
 
       {isSession && playerId && (
         <div className="flex items-center gap-1 border-t border-line px-2 py-1.5">

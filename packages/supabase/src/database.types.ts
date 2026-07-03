@@ -15,6 +15,24 @@ export type Database = {
   }
   public: {
     Tables: {
+      sponsor_tracking: {
+        Row: { sponsor_id: string; contract_start: string | null; contract_end: string | null; value_annual: number | null; contact_name: string | null; contact_email: string | null; notes: string | null; updated_at: string }
+        Insert: { sponsor_id: string; contract_start?: string | null; contract_end?: string | null; value_annual?: number | null; contact_name?: string | null; contact_email?: string | null; notes?: string | null; updated_at?: string }
+        Update: { sponsor_id?: string; contract_start?: string | null; contract_end?: string | null; value_annual?: number | null; contact_name?: string | null; contact_email?: string | null; notes?: string | null; updated_at?: string }
+        Relationships: []
+      }
+      design_requests: {
+        Row: { id: string; title: string; brief: string | null; kind: string; status: string; due: string | null; asset_url: string | null; requested_by: string | null; created_at: string; updated_at: string }
+        Insert: { id?: string; title: string; brief?: string | null; kind?: string; status?: string; due?: string | null; asset_url?: string | null; requested_by?: string | null; created_at?: string; updated_at?: string }
+        Update: { id?: string; title?: string; brief?: string | null; kind?: string; status?: string; due?: string | null; asset_url?: string | null; requested_by?: string | null; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      transactions: {
+        Row: { id: string; kind: string; category: string; label: string; amount: number; tx_date: string; sponsor_id: string | null; notes: string | null; created_at: string }
+        Insert: { id?: string; kind: string; category: string; label: string; amount: number; tx_date?: string; sponsor_id?: string | null; notes?: string | null; created_at?: string }
+        Update: { id?: string; kind?: string; category?: string; label?: string; amount?: number; tx_date?: string; sponsor_id?: string | null; notes?: string | null; created_at?: string }
+        Relationships: []
+      }
       announcements: {
         Row: { id: string; title: string; body: string; audience: string; created_by: string | null; created_at: string }
         Insert: { id?: string; title: string; body: string; audience?: string; created_by?: string | null; created_at?: string }
@@ -28,9 +46,9 @@ export type Database = {
         Relationships: []
       }
       feedback: {
-        Row: { id: string; player_id: string; author_id: string | null; match_id: string | null; body: string; acknowledged: boolean; reply: string | null; created_at: string }
-        Insert: { id?: string; player_id: string; author_id?: string | null; match_id?: string | null; body: string; acknowledged?: boolean; reply?: string | null; created_at?: string }
-        Update: { id?: string; player_id?: string; author_id?: string | null; match_id?: string | null; body?: string; acknowledged?: boolean; reply?: string | null; created_at?: string }
+        Row: { id: string; player_id: string; author_id: string | null; match_id: string | null; body: string; acknowledged: boolean; reply: string | null; review_id: string | null; timestamp_sec: number | null; created_at: string }
+        Insert: { id?: string; player_id: string; author_id?: string | null; match_id?: string | null; body: string; acknowledged?: boolean; reply?: string | null; review_id?: string | null; timestamp_sec?: number | null; created_at?: string }
+        Update: { id?: string; player_id?: string; author_id?: string | null; match_id?: string | null; body?: string; acknowledged?: boolean; reply?: string | null; review_id?: string | null; timestamp_sec?: number | null; created_at?: string }
         Relationships: []
       }
       objectives: {
@@ -238,6 +256,7 @@ export type Database = {
           photo: string | null
           pseudo: string
           role: string
+          setup: Json
           socials: Json
           sort_order: number
           stats: Json
@@ -256,6 +275,7 @@ export type Database = {
           photo?: string | null
           pseudo: string
           role: string
+          setup?: Json
           socials?: Json
           sort_order?: number
           stats?: Json
@@ -274,6 +294,7 @@ export type Database = {
           photo?: string | null
           pseudo?: string
           role?: string
+          setup?: Json
           socials?: Json
           sort_order?: number
           stats?: Json
@@ -325,6 +346,109 @@ export type Database = {
         }
         Relationships: []
       }
+      inventory_items: {
+        Row: {
+          id: string
+          owner_id: string
+          kind: string
+          name: string
+          description: string | null
+          image: string | null
+          source: string | null
+          obtained_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          kind: string
+          name: string
+          description?: string | null
+          image?: string | null
+          source?: string | null
+          obtained_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          kind?: string
+          name?: string
+          description?: string | null
+          image?: string | null
+          source?: string | null
+          obtained_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorite_matches: {
+        Row: {
+          owner_id: string
+          match_id: string
+          created_at: string
+        }
+        Insert: {
+          owner_id: string
+          match_id: string
+          created_at?: string
+        }
+        Update: {
+          owner_id?: string
+          match_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_matches_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorite_matches_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_links: {
+        Row: {
+          owner_id: string
+          discord_handle: string | null
+          twitch_handle: string | null
+          updated_at: string
+        }
+        Insert: {
+          owner_id: string
+          discord_handle?: string | null
+          twitch_handle?: string | null
+          updated_at?: string
+        }
+        Update: {
+          owner_id?: string
+          discord_handle?: string | null
+          twitch_handle?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_links_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -364,6 +488,7 @@ export type Database = {
           sort_order: number
           tagline: string | null
           tier: string
+          status: string
           updated_at: string
           url: string
         }
@@ -381,6 +506,7 @@ export type Database = {
           sort_order?: number
           tagline?: string | null
           tier: string
+          status?: string
           updated_at?: string
           url: string
         }
@@ -398,10 +524,207 @@ export type Database = {
           sort_order?: number
           tagline?: string | null
           tier?: string
+          status?: string
           updated_at?: string
           url?: string
         }
         Relationships: []
+      }
+      video_reviews: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          game_id: string | null
+          id: string
+          match_id: string | null
+          session_id: string | null
+          title: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          game_id?: string | null
+          id: string
+          match_id?: string | null
+          session_id?: string | null
+          title: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          game_id?: string | null
+          id?: string
+          match_id?: string | null
+          session_id?: string | null
+          title?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_reviews_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_reviews_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_reviews_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_player_stats: {
+        Row: {
+          id: string
+          match_id: string
+          player_id: string
+          stats: Json
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          match_id: string
+          player_id: string
+          stats?: Json
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          match_id?: string
+          player_id?: string
+          stats?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_player_stats_match_id_fkey"
+            columns: ["match_id"]
+            isOneToOne: false
+            referencedRelation: "matches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_player_stats_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      strats: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          game_id: string | null
+          id: string
+          map: string | null
+          review_id: string | null
+          tags: string[]
+          timestamp_sec: number | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          game_id?: string | null
+          id: string
+          map?: string | null
+          review_id?: string | null
+          tags?: string[]
+          timestamp_sec?: number | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          game_id?: string | null
+          id?: string
+          map?: string | null
+          review_id?: string | null
+          tags?: string[]
+          timestamp_sec?: number | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strats_game_id_fkey"
+            columns: ["game_id"]
+            isOneToOne: false
+            referencedRelation: "games"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strats_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "video_reviews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      video_annotations: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string
+          id: string
+          player_id: string | null
+          review_id: string
+          tag: string
+          timestamp_sec: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description: string
+          id?: string
+          player_id?: string | null
+          review_id: string
+          tag: string
+          timestamp_sec: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string
+          id?: string
+          player_id?: string | null
+          review_id?: string
+          tag?: string
+          timestamp_sec?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "video_annotations_review_id_fkey"
+            columns: ["review_id"]
+            isOneToOne: false
+            referencedRelation: "video_reviews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "video_annotations_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       staff: {
         Row: {
@@ -459,6 +782,7 @@ export type Database = {
       is_manager: { Args: Record<PropertyKey, never>; Returns: boolean }
       is_perf: { Args: Record<PropertyKey, never>; Returns: boolean }
       is_content: { Args: Record<PropertyKey, never>; Returns: boolean }
+      is_design: { Args: Record<PropertyKey, never>; Returns: boolean }
       my_player: { Args: Record<PropertyKey, never>; Returns: string }
     }
     Enums: { [_ in never]: never }

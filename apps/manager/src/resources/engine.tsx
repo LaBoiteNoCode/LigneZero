@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { Button, Badge, Modal, Panel, Spinner } from '@/components/ui';
+import { ImageField } from '@/components/ImageField';
 
 // ── Encodage listes/paires ⇄ textarea (une entrée par ligne) ──────────
 export const linesToArr = (s: string) =>
@@ -29,7 +30,8 @@ export type FieldType =
   | 'lines'
   | 'pairs'
   | 'textarea'
-  | 'datetime';
+  | 'datetime'
+  | 'image';
 
 export interface FieldDef {
   key: string;
@@ -41,6 +43,8 @@ export interface FieldDef {
   /** Désactivé en édition (identifiant immuable). */
   idField?: boolean;
   options?: { value: string; label: string }[];
+  /** Dossier de destination dans le bucket `media` (type 'image'). */
+  folder?: string;
 }
 
 export type Draft = Record<string, string>;
@@ -70,7 +74,8 @@ export interface ResourceConfig<T> {
 }
 
 // ── Page ressource générique ──────────────────────────────────────────
-export function ResourcePage<T>({ config }: { config: ResourceConfig<T> }) {
+/** `canWrite` : masque + Nouveau / éditer / suppr. pour les rôles lecture seule. Défaut true. */
+export function ResourcePage<T>({ config, canWrite = true }: { config: ResourceConfig<T>; canWrite?: boolean }) {
   const [items, setItems] = useState<T[] | null>(null);
   const [ctx, setCtx] = useState<ResourceContext>({});
   const [editing, setEditing] = useState<Draft | null>(null);
@@ -112,14 +117,16 @@ export function ResourcePage<T>({ config }: { config: ResourceConfig<T> }) {
           <p className="hud-label text-[11px]">{config.code}</p>
           <h1 className="font-display text-3xl font-bold uppercase tracking-hud">{config.title}</h1>
         </div>
-        <Button
-          onClick={() => {
-            setIsNew(true);
-            setEditing({ ...config.emptyDraft });
-          }}
-        >
-          + Nouveau
-        </Button>
+        {canWrite && (
+          <Button
+            onClick={() => {
+              setIsNew(true);
+              setEditing({ ...config.emptyDraft });
+            }}
+          >
+            + Nouveau
+          </Button>
+        )}
       </header>
 
       {error && (
@@ -146,7 +153,7 @@ export function ResourcePage<T>({ config }: { config: ResourceConfig<T> }) {
                     {c.header}
                   </th>
                 ))}
-                <th className="px-4 py-2 text-right">Actions</th>
+                {canWrite && <th className="px-4 py-2 text-right">Actions</th>}
               </tr>
             </thead>
             <tbody className="font-mono text-sm">
@@ -160,23 +167,25 @@ export function ResourcePage<T>({ config }: { config: ResourceConfig<T> }) {
                       {c.cell(item, ctx)}
                     </td>
                   ))}
-                  <td className="px-4 py-2.5 text-right">
-                    <button
-                      onClick={() => {
-                        setIsNew(false);
-                        setEditing(config.toDraft(item));
-                      }}
-                      className="mr-3 text-[color:var(--text-dim)] hover:text-accent"
-                    >
-                      éditer
-                    </button>
-                    <button
-                      onClick={() => remove(item)}
-                      className="text-[color:var(--text-mute)] hover:text-accent"
-                    >
-                      suppr.
-                    </button>
-                  </td>
+                  {canWrite && (
+                    <td className="px-4 py-2.5 text-right">
+                      <button
+                        onClick={() => {
+                          setIsNew(false);
+                          setEditing(config.toDraft(item));
+                        }}
+                        className="mr-3 text-[color:var(--text-dim)] hover:text-accent"
+                      >
+                        éditer
+                      </button>
+                      <button
+                        onClick={() => remove(item)}
+                        className="text-[color:var(--text-mute)] hover:text-accent"
+                      >
+                        suppr.
+                      </button>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
@@ -279,6 +288,8 @@ export function ResourceForm<T>({
                 onChange={(e) => set(f.key, e.target.value)}
                 placeholder={f.placeholder}
               />
+            ) : f.type === 'image' ? (
+              <ImageField value={form[f.key] ?? ''} onChange={(url) => set(f.key, url)} folder={f.folder ?? 'misc'} />
             ) : (
               <input
                 className="field"

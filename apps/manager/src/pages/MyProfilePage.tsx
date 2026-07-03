@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import type { Player, SocialLink } from '@lignezero/types';
+import type { Player, PlayerStat, SocialLink } from '@lignezero/types';
 import { db } from '@/lib/supabase';
 import { useAuth } from '@/auth/AuthProvider';
 import { Button, Panel, Spinner } from '@/components/ui';
+import { ImageField } from '@/components/ImageField';
 
 const toText = (a: SocialLink[]) => a.map((s) => `${s.label} | ${s.url}`).join('\n');
 const fromText = (s: string): SocialLink[] =>
@@ -10,11 +11,18 @@ const fromText = (s: string): SocialLink[] =>
     const [label, url] = l.split('|').map((x) => x.trim());
     return { label: label ?? '', url: url ?? '' };
   });
+const statsToText = (a: PlayerStat[]) => a.map((s) => `${s.label} | ${s.value}`).join('\n');
+const textToStats = (s: string): PlayerStat[] =>
+  s.split('\n').map((l) => l.trim()).filter(Boolean).map((l) => {
+    const [label, value] = l.split('|').map((x) => x.trim());
+    return { label: label ?? '', value: value ?? '' };
+  });
 
 export function MyProfilePage() {
   const { playerId } = useAuth();
   const [player, setPlayer] = useState<Player | null>(null);
   const [socialsText, setSocialsText] = useState('');
+  const [setupText, setSetupText] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +39,7 @@ export function MyProfilePage() {
       else {
         setPlayer(p);
         setSocialsText(toText(p.socials));
+        setSetupText(statsToText(p.setup));
       }
     })();
   }, [playerId]);
@@ -62,6 +71,7 @@ export function MyProfilePage() {
         color: player.color,
         photo: player.photo,
         socials: fromText(socialsText),
+        setup: textToStats(setupText),
       });
       setMsg('Profil mis à jour ✓ (visible sur la vitrine)');
     } catch (e) {
@@ -86,8 +96,12 @@ export function MyProfilePage() {
           <div><label className="label">Nom</label><input className="field" value={player.lastName ?? ''} onChange={(e) => set('lastName', e.target.value)} /></div>
           <div><label className="label">Pays (ISO)</label><input className="field" value={player.country ?? ''} onChange={(e) => set('country', e.target.value)} /></div>
           <div><label className="label">Couleur (hex)</label><input className="field" value={player.color ?? ''} onChange={(e) => set('color', e.target.value)} /></div>
-          <div className="col-span-2"><label className="label">Photo (chemin/URL)</label><input className="field" value={player.photo ?? ''} onChange={(e) => set('photo', e.target.value)} /></div>
+          <div className="col-span-2"><label className="label">Photo</label><ImageField value={player.photo ?? ''} onChange={(url) => set('photo', url)} folder="players" /></div>
           <div className="col-span-2"><label className="label">Réseaux (label | url, un par ligne)</label><textarea className="field h-24" value={socialsText} onChange={(e) => setSocialsText(e.target.value)} /></div>
+          <div className="col-span-2">
+            <label className="label">Setup gaming (ex. Souris | Logitech G Pro X Superlight 2, un par ligne)</label>
+            <textarea className="field h-24" value={setupText} onChange={(e) => setSetupText(e.target.value)} />
+          </div>
         </div>
 
         {error && <p className="mt-4 border border-[color:var(--accent)] px-3 py-2 font-mono text-xs text-accent">{error}</p>}

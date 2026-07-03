@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Nav } from './Nav';
+import { useAuth } from '@/auth/AuthProvider';
 
 /** Header HUD fixe, façon cockpit. Se densifie au scroll. */
 export function Header() {
+  const { session, profile } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const pseudo = profile?.displayName || session?.user.email?.split('@')[0];
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -48,10 +51,13 @@ export function Header() {
           <Link
             to="/compte"
             aria-label="Accès compte"
-            className="flex items-center gap-1.5 border border-line px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-hud text-[color:var(--text-dim)] transition-colors duration-ui hover:border-accent hover:text-[color:var(--text)]"
+            className={[
+              'flex items-center gap-1.5 border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-hud transition-colors duration-ui hover:border-accent hover:text-[color:var(--text)]',
+              session ? 'border-accent text-[color:var(--text)]' : 'border-line text-[color:var(--text-dim)]',
+            ].join(' ')}
           >
-            <span aria-hidden className="text-accent">⬡</span>
-            <span className="hidden sm:inline">Compte</span>
+            <span aria-hidden className="text-accent">{session ? '●' : '⬡'}</span>
+            <span className="hidden sm:inline">{session ? pseudo : 'Compte'}</span>
           </Link>
 
           <button

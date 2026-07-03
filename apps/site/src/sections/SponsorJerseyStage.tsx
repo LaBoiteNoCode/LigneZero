@@ -1,16 +1,10 @@
 import { Component, lazy, Suspense, useMemo, useState, type ReactNode } from 'react';
-import type { SponsorTier } from '@/types';
 import { HudFrame } from '@/components/ui/HudFrame';
+import { KeycapButton } from '@/components/ui/KeycapButton';
 import { useData } from '@/data/DataProvider';
 import { placeSponsors, type PlacedSponsor } from '@/lib/jerseyAnchors';
 
 const SponsorJersey = lazy(() => import('@/components/3d/SponsorJersey'));
-
-const TIER_LABEL: Record<SponsorTier, string> = {
-  principal: 'Partenaire principal',
-  officiel: 'Partenaire officiel',
-  technique: 'Partenaire technique',
-};
 
 /* ── Fallbacks 3D (chargement + WebGL indisponible) ─────────────── */
 function Loader3D() {
@@ -62,93 +56,16 @@ function StaticFallback({ placed }: { placed: PlacedSponsor[] }) {
   );
 }
 
-/* ── Panneau HUD du sponsor sélectionné ─────────────────────────── */
-function SelectedPanel({ placed }: { placed: PlacedSponsor | null }) {
-  if (!placed) {
-    return (
-      <div className="p-5">
-        <p className="hud-label text-[10px]">[ Lecture ]</p>
-        <p className="mt-3 font-mono text-sm leading-relaxed text-[color:var(--text-dim)]">
-          <span className="text-accent">&gt;</span> Clique un patch sur le maillot — ou un partenaire
-          dans la liste. La caméra pivote et zoome sur son emplacement.
-        </p>
-      </div>
-    );
-  }
-
-  const { sponsor, anchor } = placed;
-  const col = sponsor.color ?? 'var(--accent)';
-
-  return (
-    <div className="p-5" aria-live="polite">
-      <div className="flex items-center gap-2">
-        <span className="h-2 w-2" style={{ background: col }} aria-hidden />
-        <span className="hud-label text-[9px]">{TIER_LABEL[sponsor.tier]}</span>
-      </div>
-
-      <h3
-        className="hud-title mt-2 text-3xl font-bold leading-none"
-        style={{ textShadow: `3px 3px 0 var(--base-900), 5px 5px 0 ${col}` }}
-      >
-        {sponsor.name}
-      </h3>
-
-      {sponsor.tagline && (
-        <p className="mt-3 font-mono text-sm italic leading-relaxed text-[color:var(--text-dim)]">
-          « {sponsor.tagline} »
-        </p>
-      )}
-
-      <dl className="mt-5 space-y-2 border-t border-line pt-4 font-mono text-xs">
-        <div className="flex justify-between gap-3">
-          <dt className="text-[color:var(--text-mute)]">Emplacement</dt>
-          <dd className="text-right text-[color:var(--text)]">{anchor.label}</dd>
-        </div>
-        {sponsor.sector && (
-          <div className="flex justify-between gap-3">
-            <dt className="text-[color:var(--text-mute)]">Secteur</dt>
-            <dd className="text-right text-[color:var(--text)]">{sponsor.sector}</dd>
-          </div>
-        )}
-        {sponsor.since && (
-          <div className="flex justify-between gap-3">
-            <dt className="text-[color:var(--text-mute)]">Depuis</dt>
-            <dd className="text-right text-[color:var(--text)]">{sponsor.since}</dd>
-          </div>
-        )}
-      </dl>
-
-      {sponsor.description && (
-        <p className="mt-4 font-mono text-xs leading-relaxed text-[color:var(--text-dim)]">
-          {sponsor.description}
-        </p>
-      )}
-
-      <a
-        href={sponsor.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-5 inline-block border-2 bg-base-900/70 px-4 py-2 font-mono text-xs font-bold uppercase tracking-hud shadow-ink-sm transition-all hover:-translate-y-0.5 hover:brightness-125"
-        style={{ borderColor: col, color: col }}
-      >
-        Visiter ↗
-      </a>
-    </div>
-  );
-}
-
 /* ── Composition ────────────────────────────────────────────────── */
 export function SponsorJerseyStage() {
   const { sponsors } = useData();
   const placed = useMemo(() => placeSponsors(sponsors), [sponsors]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const selected = placed.find((p) => p.sponsor.id === selectedId) ?? null;
-
   if (placed.length === 0) return null;
 
   return (
-    <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[1fr_340px]">
+    <div className="mt-10">
       {/* ── SCÈNE 3D ── */}
       <HudFrame label="JERSEY // PARTENAIRES" corner="CLICK A SPONSOR" tone="accent" className="cut-panel">
         <div
@@ -166,56 +83,43 @@ export function SponsorJerseyStage() {
 
           {/* HUD flottant : reset caméra */}
           {selectedId && (
-            <button
-              type="button"
-              onClick={() => setSelectedId(null)}
-              className="absolute right-3 top-3 z-10 border-2 border-line-strong bg-base-900/80 px-3 py-1.5 font-mono text-[10px] uppercase tracking-hud text-[color:var(--text-dim)] transition-colors hover:border-accent hover:text-[color:var(--text)]"
-            >
-              ✕ vue d'ensemble
-            </button>
+            <div className="absolute right-3 top-3 z-10">
+              <KeycapButton size="sm" variant="secondary" onClick={() => setSelectedId(null)}>
+                ✕ vue d'ensemble
+              </KeycapButton>
+            </div>
           )}
         </div>
       </HudFrame>
 
-      {/* ── RAIL + FICHE ── */}
-      <div className="flex flex-col gap-4">
-        <HudFrame label="PARTENAIRES" corner={String(placed.length).padStart(2, '0')} className="cut-panel">
-          <div className="flex flex-col gap-1.5 p-3">
-            {placed.map(({ sponsor, anchor }) => {
-              const active = sponsor.id === selectedId;
-              const col = sponsor.color ?? 'var(--accent)';
-              return (
-                <button
-                  key={sponsor.id}
-                  type="button"
-                  onClick={() => setSelectedId(active ? null : sponsor.id)}
-                  aria-pressed={active}
-                  className={[
-                    'flex items-center justify-between gap-3 border-2 px-3 py-2 text-left transition-all duration-snap',
-                    active
-                      ? '-translate-y-0.5 bg-base-800 shadow-ink-sm'
-                      : 'border-line-strong bg-base-900/60 hover:border-line-bright',
-                  ].join(' ')}
-                  style={{ borderColor: active ? col : undefined }}
-                >
-                  <span className="flex items-center gap-2">
-                    <span className="h-2 w-2 shrink-0" style={{ background: col, opacity: active ? 1 : 0.55 }} aria-hidden />
-                    <span
-                      className={`hud-title text-sm font-bold ${active ? 'text-[color:var(--text)]' : 'text-[color:var(--text-mute)]'}`}
-                    >
-                      {sponsor.name}
-                    </span>
-                  </span>
-                  <span className="hud-label text-[8px] leading-tight">{anchor.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </HudFrame>
-
-        <HudFrame label="FICHE" corner={selected ? 'LOCK' : 'IDLE'} tone={selected ? 'accent' : 'dim'} className="cut-panel">
-          <SelectedPanel placed={selected} />
-        </HudFrame>
+      {/* ── CARROUSEL PARTENAIRES — clic = focus caméra sur le patch ── */}
+      <div className="mt-6 flex gap-3 overflow-x-auto pb-2">
+        {placed.map((p) => {
+          const active = p.sponsor.id === selectedId;
+          const col = p.sponsor.color ?? 'var(--accent)';
+          return (
+            <button
+              key={p.sponsor.id}
+              type="button"
+              onClick={() => setSelectedId(active ? null : p.sponsor.id)}
+              aria-pressed={active}
+              className={[
+                'shrink-0 border-2 px-5 py-3 text-left transition-all duration-snap',
+                active
+                  ? '-translate-y-0.5 bg-base-800 shadow-ink-sm'
+                  : 'border-line-strong bg-base-900/60 hover:border-line-bright',
+              ].join(' ')}
+              style={{ borderColor: active ? col : undefined }}
+            >
+              <span
+                className="hud-title block whitespace-nowrap text-sm font-bold"
+                style={{ color: active ? col : 'var(--text-dim)' }}
+              >
+                {p.sponsor.name}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

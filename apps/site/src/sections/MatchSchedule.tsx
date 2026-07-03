@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { MatchStatus } from '@/types';
 import { useData } from '@/data/DataProvider';
+import { useAuth } from '@/auth/AuthProvider';
+import { db } from '@/lib/supabase';
 import { StatusTag } from '@/components/ui/StatusTag';
 import { FunnelStage } from '@/components/animation/FunnelStage';
 import { formatDate, formatTime, sortMatches } from '@/lib/format';
@@ -33,8 +35,33 @@ function FilterBtn({ active, onClick, children }: { active: boolean; onClick: ()
 /** Agenda matchs — filtres jeu/statut, tri chrono. Données data/matches.ts. */
 export function MatchSchedule() {
   const { matches, games } = useData();
+  const { session } = useAuth();
   const [game, setGame] = useState<string>(ALL);
   const [status, setStatus] = useState<MatchStatus | typeof ALL>(ALL);
+  const [favIds, setFavIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!session) {
+      setFavIds(new Set());
+      return;
+    }
+    db.listMyFavorites().then((f) => setFavIds(new Set(f.map((x) => x.matchId))));
+  }, [session]);
+
+  async function toggleFavorite(matchId: string) {
+    if (!session) return;
+    if (favIds.has(matchId)) {
+      await db.removeFavorite(matchId);
+      setFavIds((s) => {
+        const n = new Set(s);
+        n.delete(matchId);
+        return n;
+      });
+    } else {
+      await db.addFavorite(matchId);
+      setFavIds((s) => new Set(s).add(matchId));
+    }
+  }
 
   const list = useMemo(() => {
     const filtered = matches.filter(
@@ -82,7 +109,19 @@ export function MatchSchedule() {
               className="cut-panel panel-concrete grid grid-cols-1 items-center gap-3 border-2 border-line-strong p-4 shadow-ink-sm sm:grid-cols-[auto_1fr_auto] sm:gap-6"
             >
               {/* date / heure */}
-              <div className="flex items-center gap-4 sm:flex-col sm:items-start sm:gap-0">
+              <div className="flex items-center gap-3 sm:flex-col sm:items-start sm:gap-0">
+                {session && (
+                  <button
+                    type="button"
+                    onClick={() => toggleFavorite(m.id)}
+                    aria-label={favIds.has(m.id) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                    aria-pressed={favIds.has(m.id)}
+                    className="order-first font-mono text-lg leading-none transition-colors sm:order-none sm:mb-1"
+                    style={{ color: favIds.has(m.id) ? 'var(--accent)' : 'var(--text-mute)' }}
+                  >
+                    {favIds.has(m.id) ? '★' : '☆'}
+                  </button>
+                )}
                 <span className="font-mono text-sm font-bold uppercase text-[color:var(--text)]">
                   {formatDate(m.dateISO)}
                 </span>

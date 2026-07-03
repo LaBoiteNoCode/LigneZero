@@ -21,6 +21,13 @@ import type {
   PlayerStat,
   SocialLink,
   SponsorTier,
+  SponsorStatus,
+  SponsorTracking,
+  DesignRequest,
+  DesignKind,
+  DesignStatus,
+  Transaction,
+  TransactionKind,
   MatchStatus,
   ProductStatus,
   UserRole,
@@ -35,6 +42,14 @@ import type {
   RsvpStatus,
   Availability,
   AvailabilityStatus,
+  VideoReview,
+  VideoAnnotation,
+  MatchPlayerStat,
+  Strat,
+  InventoryItemKind,
+  InventoryItem,
+  FavoriteMatch,
+  MemberLinks,
 } from '@lignezero/types';
 import type { Tables, TablesInsert } from './database.types';
 
@@ -84,6 +99,7 @@ export function fromPlayerRow(r: Tables<'players'>): Player {
     stats: (r.stats as unknown as PlayerStat[]) ?? [],
     palmares: r.palmares ?? [],
     joinedYear: u(r.joined_year),
+    setup: (r.setup as unknown as PlayerStat[]) ?? [],
   };
 }
 export function toPlayerRow(p: Player, sortOrder = 0): TablesInsert<'players'> {
@@ -101,6 +117,7 @@ export function toPlayerRow(p: Player, sortOrder = 0): TablesInsert<'players'> {
     stats: (p.stats ?? []) as unknown as TablesInsert<'players'>['stats'],
     palmares: p.palmares ?? [],
     joined_year: p.joinedYear ?? null,
+    setup: (p.setup ?? []) as unknown as TablesInsert<'players'>['setup'],
     sort_order: sortOrder,
   };
 }
@@ -145,6 +162,7 @@ export function fromSponsorRow(r: Tables<'sponsors'>): Sponsor {
     color: u(r.color),
     url: r.url,
     tier: r.tier as SponsorTier,
+    status: r.status as SponsorStatus,
     tagline: u(r.tagline),
     sector: u(r.sector),
     since: u(r.since),
@@ -161,6 +179,7 @@ export function toSponsorRow(s: Sponsor, sortOrder = 0): TablesInsert<'sponsors'
     color: s.color ?? null,
     url: s.url,
     tier: s.tier,
+    status: s.status ?? 'actif',
     tagline: s.tagline ?? null,
     sector: s.sector ?? null,
     since: s.since ?? null,
@@ -321,6 +340,8 @@ export function fromFeedbackRow(r: Tables<'feedback'>): Feedback {
     body: r.body,
     acknowledged: r.acknowledged,
     reply: u(r.reply),
+    reviewId: u(r.review_id),
+    timestampSec: u(r.timestamp_sec),
     createdAt: r.created_at,
   };
 }
@@ -332,6 +353,8 @@ export function toFeedbackRow(f: Partial<Feedback>): TablesInsert<'feedback'> {
     body: f.body ?? '',
     acknowledged: f.acknowledged ?? false,
     reply: f.reply ?? null,
+    review_id: f.reviewId ?? null,
+    timestamp_sec: f.timestampSec ?? null,
   };
 }
 
@@ -392,5 +415,200 @@ export function toAvailabilityRow(a: Partial<Availability>): TablesInsert<'avail
     end_time: a.endTime ?? null,
     status: a.status ?? 'available',
     note: a.note ?? null,
+  };
+}
+
+// ── Revue vidéo ────────────────────────────────────────────────────
+export function fromVideoReviewRow(r: Tables<'video_reviews'>): VideoReview {
+  return {
+    id: r.id,
+    title: r.title,
+    videoUrl: r.video_url,
+    gameId: u(r.game_id),
+    sessionId: u(r.session_id),
+    matchId: u(r.match_id),
+    createdAt: r.created_at,
+  };
+}
+export function toVideoReviewRow(v: Partial<VideoReview>): TablesInsert<'video_reviews'> {
+  return {
+    id: v.id ?? '',
+    title: v.title ?? '',
+    video_url: v.videoUrl ?? '',
+    game_id: v.gameId ?? null,
+    session_id: v.sessionId ?? null,
+    match_id: v.matchId ?? null,
+  };
+}
+
+export function fromVideoAnnotationRow(r: Tables<'video_annotations'>): VideoAnnotation {
+  return {
+    id: r.id,
+    reviewId: r.review_id,
+    timestampSec: r.timestamp_sec,
+    tag: r.tag,
+    description: r.description,
+    playerId: u(r.player_id),
+    createdAt: r.created_at,
+  };
+}
+export function toVideoAnnotationRow(a: Partial<VideoAnnotation>): TablesInsert<'video_annotations'> {
+  return {
+    id: a.id,
+    review_id: a.reviewId ?? '',
+    timestamp_sec: a.timestampSec ?? 0,
+    tag: a.tag ?? '',
+    description: a.description ?? '',
+    player_id: a.playerId ?? null,
+  };
+}
+
+// ── Stats par match ────────────────────────────────────────────────
+export function fromMatchPlayerStatRow(r: Tables<'match_player_stats'>): MatchPlayerStat {
+  return {
+    id: r.id,
+    matchId: r.match_id,
+    playerId: r.player_id,
+    stats: (r.stats as unknown as PlayerStat[]) ?? [],
+  };
+}
+export function toMatchPlayerStatRow(s: Partial<MatchPlayerStat>): TablesInsert<'match_player_stats'> {
+  return {
+    id: s.id,
+    match_id: s.matchId ?? '',
+    player_id: s.playerId ?? '',
+    stats: (s.stats ?? []) as unknown as TablesInsert<'match_player_stats'>['stats'],
+  };
+}
+
+// ── Strats ─────────────────────────────────────────────────────────
+export function fromStratRow(r: Tables<'strats'>): Strat {
+  return {
+    id: r.id,
+    title: r.title,
+    gameId: u(r.game_id),
+    map: u(r.map),
+    description: r.description,
+    tags: r.tags ?? [],
+    reviewId: u(r.review_id),
+    timestampSec: u(r.timestamp_sec),
+    createdAt: r.created_at,
+  };
+}
+export function toStratRow(s: Strat): TablesInsert<'strats'> {
+  return {
+    id: s.id,
+    title: s.title,
+    game_id: s.gameId ?? null,
+    map: s.map ?? null,
+    description: s.description,
+    tags: s.tags ?? [],
+    review_id: s.reviewId ?? null,
+    timestamp_sec: s.timestampSec ?? null,
+  };
+}
+
+// ── Inventaire membre (lecture seule côté site) ───────────────────────
+export function fromInventoryItemRow(r: Tables<'inventory_items'>): InventoryItem {
+  return {
+    id: r.id,
+    ownerId: r.owner_id,
+    kind: r.kind as InventoryItemKind,
+    name: r.name,
+    description: u(r.description),
+    image: u(r.image),
+    source: u(r.source),
+    obtainedAt: r.obtained_at,
+  };
+}
+
+// ── Matchs favoris ─────────────────────────────────────────────────
+export function fromFavoriteMatchRow(r: Tables<'favorite_matches'>): FavoriteMatch {
+  return { ownerId: r.owner_id, matchId: r.match_id };
+}
+export function toFavoriteMatchRow(f: FavoriteMatch): TablesInsert<'favorite_matches'> {
+  return { owner_id: f.ownerId, match_id: f.matchId };
+}
+
+// ── Liens Discord/Twitch ───────────────────────────────────────────
+export function fromMemberLinksRow(r: Tables<'member_links'>): MemberLinks {
+  return { ownerId: r.owner_id, discordHandle: u(r.discord_handle), twitchHandle: u(r.twitch_handle) };
+}
+export function toMemberLinksRow(m: MemberLinks): TablesInsert<'member_links'> {
+  return { owner_id: m.ownerId, discord_handle: m.discordHandle ?? null, twitch_handle: m.twitchHandle ?? null };
+}
+
+// ── Suivi sponsors (table privée manager) ──────────────────────────
+export function fromSponsorTrackingRow(r: Tables<'sponsor_tracking'>): SponsorTracking {
+  return {
+    sponsorId: r.sponsor_id,
+    contractStart: u(r.contract_start),
+    contractEnd: u(r.contract_end),
+    valueAnnual: u(r.value_annual),
+    contactName: u(r.contact_name),
+    contactEmail: u(r.contact_email),
+    notes: u(r.notes),
+  };
+}
+export function toSponsorTrackingRow(t: SponsorTracking): TablesInsert<'sponsor_tracking'> {
+  return {
+    sponsor_id: t.sponsorId,
+    contract_start: t.contractStart ?? null,
+    contract_end: t.contractEnd ?? null,
+    value_annual: t.valueAnnual ?? null,
+    contact_name: t.contactName ?? null,
+    contact_email: t.contactEmail ?? null,
+    notes: t.notes ?? null,
+  };
+}
+
+// ── Demandes graphiques ────────────────────────────────────────────
+export function fromDesignRequestRow(r: Tables<'design_requests'>): DesignRequest {
+  return {
+    id: r.id,
+    title: r.title,
+    brief: u(r.brief),
+    kind: r.kind as DesignKind,
+    status: r.status as DesignStatus,
+    due: u(r.due),
+    assetUrl: u(r.asset_url),
+    createdAt: r.created_at,
+  };
+}
+export function toDesignRequestRow(d: Partial<DesignRequest>): TablesInsert<'design_requests'> {
+  return {
+    id: d.id,
+    title: d.title ?? '',
+    brief: d.brief ?? null,
+    kind: d.kind ?? 'autre',
+    status: d.status ?? 'todo',
+    due: d.due ?? null,
+    asset_url: d.assetUrl ?? null,
+  };
+}
+
+// ── Finance (admin uniquement) ─────────────────────────────────────
+export function fromTransactionRow(r: Tables<'transactions'>): Transaction {
+  return {
+    id: r.id,
+    kind: r.kind as TransactionKind,
+    category: r.category,
+    label: r.label,
+    amount: Number(r.amount),
+    date: r.tx_date,
+    sponsorId: u(r.sponsor_id),
+    notes: u(r.notes),
+  };
+}
+export function toTransactionRow(t: Partial<Transaction>): TablesInsert<'transactions'> {
+  return {
+    id: t.id,
+    kind: t.kind ?? 'depense',
+    category: t.category ?? '',
+    label: t.label ?? '',
+    amount: t.amount ?? 0,
+    tx_date: t.date ?? new Date().toISOString().slice(0, 10),
+    sponsor_id: t.sponsorId ?? null,
+    notes: t.notes ?? null,
   };
 }
